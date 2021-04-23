@@ -1,6 +1,6 @@
 dirname = '/data/proj/ERtransport/Edward081020/200807_COS7_RTN4 KO_lumern and membrane/extractedfiles/';
-%fglob = '200807_COS7_WT_SNAP_KDEL_505_Sec61_Halo_TMR_Series*.tif'
-fglob = '200807_COS7_RTN4_KO_2G3_SNAP_KDEL_505_Sec61_Halo_TMR*.tif';
+fglob = '200807_COS7_WT_SNAP_KDEL_505_Sec61_Halo_TMR_Series*.tif'
+%fglob = '200807_COS7_RTN4_KO_2G3_SNAP_KDEL_505_Sec61_Halo_TMR*.tif';
 files = dir([dirname fglob])
 
 % offset for dilation and erosion, to deal with resolution issues
@@ -10,7 +10,7 @@ resoffset = 0.3;
 cellct = 0;
 %%
 %cellct = 0;
-for fc = 5:length(files)
+for fc = 10:length(files)
     fname = files(fc).name;
     [filepath,name,ext] = fileparts(fname);
     

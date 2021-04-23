@@ -91,7 +91,7 @@ for fc = 4:length(files)
         end
         
         %% show masks
-        CL.showROImasks(0)
+        CL.showROImasks;
         
                 
         %% calculate radius estimate for this sheet and tubule group

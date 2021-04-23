@@ -212,6 +212,8 @@ classdef CellObjTubeSheet < handle
             opt = struct();
             % minimal tube length in pixels
             opt.mintubelen = 0;
+            % max distance between tubule and sheet
+            opt.maxtubedist = inf;
             
             if (exist('options','var'))
                 opt = copyStruct(options,opt);
@@ -225,11 +227,28 @@ classdef CellObjTubeSheet < handle
             
             Ftubes = zeros(length(tubeROIs),1);
             Ltubes = Ftubes;
+            closeenough = true(length(tubeROIs),1);
             for tc = 1:length(tubeROIs)
                 tube = tubeROIs(tc);
                 Ftubes(tc) = sum(sum(tube.dilmask.*double(CL.imgmem-CL.bgROI.avg)));
                 Ltubes(tc) = tube.L;%+2*tube.dilum*CL.pxperum;
+                
+                tubepath = tube.interppath;
+                sheetbound = sheetROI.bound;
+
+                if (~isinf(opt.maxtubedist))
+                    % check if tube is close enough to sheet
+                    mindist = inf;
+                    for pc = 1:size(sheetbound,1)
+                        dists = sqrt(sum((tubepath - sheetbound(pc,:)).^2,2));
+                        mindist = min(mindist,min(dists));
+                    end
+                    closeenough(tc) = (mindist< opt.maxtubedist*CL.pxperum);
+                end
             end
+            
+            Ltubes = Ltubes(closeenough);
+            Ftubes = Ftubes(closeenough);
             
             if (opt.mintubelen>0)
                 goodind = find(Ltubes>opt.mintubelen);
@@ -237,25 +256,27 @@ classdef CellObjTubeSheet < handle
                 goodind = 1:length(Ltubes);
             end
             
+            
+            
             totFtube = sum(Ftubes(goodind));
             totLtube = sum(Ltubes(goodind));
             
             Rtube = totFtube/Fsheet*Asheet/totLtube/pi/CL.pxperum;            
         end
         
-        function showROImasks(CL,whichroi,showlum)
+        function showROImasks(CL,options)
             
-            if (whichroi<=0)
-                whichroi = 1:length(CL.ROIgroups);
-            end
-            
-            if (~exist('showlum','var'))
-                showlum = false;
-            end
+            opt.whichroi = 1:length(CL.ROIgroups);
+            opt.showlum = false;
+            opt.label = false;
+
+            if (exist('options','var'))
+                opt = copyStruct(options,opt);
+            end            
             
             %% show all sheet and tube masks and paths
             totmask = zeros(CL.ImgSize);
-            for sc= whichroi
+            for sc= opt.whichroi
                 sheetROI = CL.ROIgroups(sc).sheetROI;
                 tubeROIs = CL.ROIgroups(sc).tubeROIs;
                 totmask = totmask + sheetROI.erodemask;
@@ -264,13 +285,21 @@ classdef CellObjTubeSheet < handle
                     totmask = totmask + tubeROIs(tc).dilmask;
                 end
             end
-            if (showlum)
+            if (opt.showlum)
                 imshowpair(CL.imglum,totmask)
             else
                 imshowpair(CL.imgmem,totmask)
             end
             hold all
-            for sc = whichroi
+            
+            if (opt.label)
+                for sc = opt.whichroi
+                    cent = mean(CL.ROIgroups(sc).sheetROI.bound);
+                    text(cent(1),cent(2),sprintf('%d',sc),'Color','w')
+                end
+            end
+
+            for sc = opt.whichroi
                 tubeROIs = CL.ROIgroups(sc).tubeROIs;
                 for tc = 1:length(tubeROIs)
                     plot(tubeROIs(tc).interppath(:,1),tubeROIs(tc).interppath(:,2),'c.-')

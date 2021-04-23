@@ -1,9 +1,9 @@
 % ctrl cells
-%dirname = '/data/proj/ERsorting/400 ng ER Shaping Proteins/01 COS7 Control/400 ng mCherry N1 200 ng mEmerald Calnexin 200 ng BFP KDEL/'
-%fglob = 'Cell*2019*/FITC_*_Calnexin_membrane.tif';
+%dirname = '/data/proj/ERsorting/200 ng ER Shaping Proteins/01 COS7 Control/200 ng mCherry N1 200 ng mEmerald Calnexin 200 ng BFP KDEL/';
+%fglob = 'Cell*2019*/*alnexin_membrane.tif';
 % Rtn4OE cells
-dirname = '/data/proj/ERsorting/400 ng ER Shaping Proteins/02 COS7 Rtn4a/400 ng mCherry Rtn4a 200 ng mEmerald Calnexin 200 ng BFP KDEL/'
-fglob = 'Cell*2019*/FITC_*_Calnexin_membrane.tif';
+dirname = '/data/proj/ERsorting/200 ng ER Shaping Proteins/02 COS7 Rtn4a/200 ng mCherry Rtn4a 200 ng mEmerald Calnexin 200 ng BFP KDEL/';
+fglob = 'Cell*2019*/*alnexin_membrane.tif';
 
 files = dir([dirname fglob])
 
@@ -14,7 +14,7 @@ resoffset = 0.2;
 cellct = 0;
 %%
 %cellct = 0;
-for fc = 5:length(files)
+for fc = 18:length(files)
     fname = files(fc).name
     [filepath,name,ext] = fileparts(fname);
     
@@ -60,7 +60,7 @@ for fc = 5:length(files)
         tubect = length(CL.ROIgroups(sheetcount).tubeROIs);
         
         figure(1); %subplot(1,2,1)
-        imshowpair(CL.imgmem,sheetROI.erodemask)
+        %imshowpair(CL.imgmem,sheetROI.erodemask)
         %imshowpair(img2,sheetROI.erodemask)
         
         while 1
@@ -84,7 +84,7 @@ for fc = 5:length(files)
         end
         
         %% show masks
-        CL.showROImasks(0)
+        CL.showROImasks()
         
                 
         %% calculate radius estimate for this sheet and tubule group
@@ -105,8 +105,8 @@ for fc = 5:length(files)
 end
 
 %%
-save('../results/400ngRTN4OE_b_FITC_Calnexin_membrane.mat', '-v7.3');
-%save('../results/400ngCtrl_b_FITC_Calnexin_membrane.mat', '-v7.3');
+%save('../results/200ngRTN4OE_FITC_Calnexin_membrane.mat', '-v7.3');
+save('../results/200ngRTN4OE_Calnexin_membrane.mat', '-v7.3');
 %% get averages
 Restimates = [];
 for cc = 1:length(allcells)    
@@ -150,19 +150,25 @@ median(Restimates)
 
 %% load Laura's data
 
-load('../results/400ngCtrl_FITC_Calnexin_membrane.mat')
+load('../results/400ngCtrl_b_FITC_Calnexin_membrane.mat')
+%%
 erodeum=0.2; dilum =0.2;
 RestimatesWTLaura = [];
 for cc = 1:length(allcells)    
     CL = allcells(cc);
     CL.reprocessROIs(erodeum,dilum);
+    options = struct('mintubelen',5,'maxtubedist',4);    
     for sc = 1:length(CL.ROIgroups)       
-        CL.ROIgroups(sc).Restimate = getRestimates(CL,CL.ROIgroups(sc),struct('mintubelen',5));
+        CL.ROIgroups(sc).Restimate = getRestimates(CL,CL.ROIgroups(sc),options);
         RestimatesWTLaura(end+1) = CL.ROIgroups(sc).Restimate;
     end    
 end
+%
+RestimatesWTLaura = RestimatesWTLaura(~isnan(RestimatesWTLaura));
 
-load('../results/400ngRTN4OE_FITC_Calnexin_membrane.mat')
+[mean(RestimatesWTLaura) median(RestimatesWTLaura) length(RestimatesWTLaura)]
+%%
+load('../results/400ngRTN4OE_b_FITC_Calnexin_membrane.mat')
 erodeum=0.2; dilum =0.2;
 RestimatesRTN4OE = [];
 for cc = 1:length(allcells)    
@@ -173,9 +179,43 @@ for cc = 1:length(allcells)
         RestimatesRTN4OE(end+1) = CL.ROIgroups(sc).Restimate;
     end    
 end
+%%
+load('../results/200ngCtrl_Calnexin_membrane.mat')
+%
+erodeum=0.2; dilum =0.2;
+Restimates200WTLaura = [];
+options = struct('mintubelen',3,'maxtubedist',inf);    
+for cc = 1:length(allcells)    
+    CL = allcells(cc);
+    CL.reprocessROIs(erodeum,dilum);
+    for sc = 1:length(CL.ROIgroups)              
+        CL.ROIgroups(sc).Restimate = getRestimates(CL,CL.ROIgroups(sc),options);
+        Restimates200WTLaura(end+1) = CL.ROIgroups(sc).Restimate;
+    end    
+end
+Restimates200WTLaura = Restimates200WTLaura(~isnan(Restimates200WTLaura));
+
+[mean(Restimates200WTLaura) median(Restimates200WTLaura) length(Restimates200WTLaura)]
+%%
+load('../results/200ngRTN4OE_Calnexin_membrane.mat')
+erodeum=0.2; dilum =0.2;
+Restimates200RTN4OE = [];
+options = struct('mintubelen',3,'maxtubedist',inf);   
+for cc = 1:length(allcells)    
+    CL = allcells(cc);
+    CL.reprocessROIs(erodeum,dilum);
+    for sc = 1:length(CL.ROIgroups)       
+        CL.ROIgroups(sc).Restimate = getRestimates(CL,CL.ROIgroups(sc),options);
+        Restimates200RTN4OE(end+1) = CL.ROIgroups(sc).Restimate;
+    end    
+end
+Restimates200RTN4OE = Restimates200RTN4OE(~isnan(Restimates200RTN4OE));
+
+[mean(Restimates200RTN4OE) median(Restimates200RTN4OE) length(Restimates200RTN4OE)]
 
 
-%% Compare multiple datasets
+
+%% Compare with Edward's datasets
 load('200807_COS7_RTN4_KO_2G3_SNAP_KDEL_505_Sec61_Halo_TMR.mat')
 erodeum=0.2; dilum =0.2;
 
@@ -320,3 +360,6 @@ disp('means of bootstrap')
 [mean(bootstrapWT) mean(bootstrapRTN4)]
 disp('std of bootstrap')
 [std(bootstrapWT) std(bootstrapRTN4)]
+
+% ----------
+%% Try keeping only sufficiently nearby tubules

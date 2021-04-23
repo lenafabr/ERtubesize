@@ -1,9 +1,22 @@
-% ctrl cells
-%dirname = '/data/proj/ERsorting/400 ng ER Shaping Proteins/01 COS7 Control/400 ng mCherry N1 200 ng mEmerald Calnexin 200 ng BFP KDEL/'
-%fglob = 'Cell*2019*/FITC_*_Calnexin_membrane.tif';
-% Rtn4OE cells
-dirname = '/data/proj/ERsorting/400 ng ER Shaping Proteins/02 COS7 Rtn4a/400 ng mCherry Rtn4a 200 ng mEmerald Calnexin 200 ng BFP KDEL/'
-fglob = 'Cell*2019*/FITC_*_Calnexin_membrane.tif';
+%dirname = '/data/proj/ERtransport/Edward081020/200807_COS7_RTN4 KO_lumern and membrane/extractedfiles/';
+%fglob = '200807_COS7_WT_SNAP_KDEL_505_Sec61_Halo_TMR_Series*.tif'
+dirname = '/data/proj/ERtransport/210223_COS7_and_SHSY5Y_RTN4_KO_ER_tubule/SHSY5Y/'
+% ctrl
+%fglob = '210223_COS7_WT_Sec61_Halo_OG_ER_mCherry_Series001_*.tif';
+% ctrl superresolution
+%fglob = '210106_COS7_WT_Sec61_Halo_OG_ER_mCherry_Lightning_*Lng.tif';
+
+% Rtn4KO
+%fglob = '210223_COS7_RTN4_KO_Sec61_Halo_OG_ER_mCherry_Series001_*.tif';
+%fglob = '210106_COS7_RTN4_KO_Sec61_Halo_OG_ER_mCherry*.tif';
+% Rtn4KO superresolution
+%fglob = '210106_COS7_RTN4_KO_Sec61_Halo_OG_ER_mCherry_Lightning*Lng.tif';
+
+% SHSY5Y WT
+%fglob = '210223_SHSY5Y_WT_Sec61_Halo_OG_ER_mCherry_Series001_*.tif';
+% SHSY5Y RTN4 KO
+fglob = '210223_SHSY5Y_RTN4KO_Sec61_Halo_OG_ER_mCherry_Series001_*.tif';
+
 
 files = dir([dirname fglob])
 
@@ -14,22 +27,23 @@ resoffset = 0.2;
 cellct = 0;
 %%
 %cellct = 0;
-for fc = 5:length(files)
+for fc = 15:length(files)
     fname = files(fc).name
     [filepath,name,ext] = fileparts(fname);
     
     CL = CellObjTubeSheet(name);
+    memframe = 1; lumframe = 2;
+    CL.loadCellData(dirname,fname,memframe,lumframe);        
     
-    %%
-    CL.loadCellStackMaxI([files(fc).folder '/'], fname)
-   
-    %% adjust image
-    img = CL.imgmem - min(CL.imgmem(:));
-    img = img./max(img(:));
-    img2 = imadjust(img,[0,0.3],[0,1]);
-    CL.imgmem = img2;
+    % show membrane and luminal images
+    figure(2)
+    subplot(1,2,1)
+    imshow(CL.imgmem,[])
+    title('membrane')
+    subplot(1,2,2)
+    imshow(CL.imglum,[])
+    title('luminal')
     
-    % show membrane and luminal images   
     figure(1)
     imshow(CL.imgmem,[])
     title('membrane')
@@ -61,8 +75,7 @@ for fc = 5:length(files)
         
         figure(1); %subplot(1,2,1)
         imshowpair(CL.imgmem,sheetROI.erodemask)
-        %imshowpair(img2,sheetROI.erodemask)
-        
+            
         while 1
             tubect = tubect+1;
             
@@ -105,8 +118,12 @@ for fc = 5:length(files)
 end
 
 %%
-save('../results/400ngRTN4OE_b_FITC_Calnexin_membrane.mat', '-v7.3');
-%save('../results/400ngCtrl_b_FITC_Calnexin_membrane.mat', '-v7.3');
+%save('../results/200807_COS7_WT_SNAP_KDEL_505_Sec61_Halo_TMR.mat')
+%save('../results/210106_COS7_WT_Sec61_Halo_OG_ERmCherry.mat')
+%save('210106_COS7_RTN4_KO_Sec61_Halo_OG_ER_mCherry.mat')
+%save('../results/210223_COS7_WT_Sec61_Halo_OG_ER_mCherry.mat')
+%save('../results/210223_COS7_RTN4_KO_Sec61_Halo_OG_ER_mCherry.mat')
+save('../results/210223_SHSY5Y_RTN4_KO_Sec61_Halo_OG_ER_mCherry.mat')
 %% get averages
 Restimates = [];
 for cc = 1:length(allcells)    
@@ -138,43 +155,10 @@ for cc = 1:length(allcells)
     end
 end
 Restimates = Restimates(~isnan(Restimates));
+Restimates(Restimates>0.1) = [];
 
 [mean(Restimates) std(Restimates) length(Restimates) std(Restimates)/sqrt(length(Restimates))]
 median(Restimates)
-
-%% save without images
-% for cc = 1:length(allcells)
-%     allcells(cc).imgmem = [];
-% end
-% save('../results/400ngCtrl_FITC_Calnexin_membrane_noimg.mat', 'allcells','dirname','fglob','files','dilum','erodeum');
-
-%% load Laura's data
-
-load('../results/400ngCtrl_FITC_Calnexin_membrane.mat')
-erodeum=0.2; dilum =0.2;
-RestimatesWTLaura = [];
-for cc = 1:length(allcells)    
-    CL = allcells(cc);
-    CL.reprocessROIs(erodeum,dilum);
-    for sc = 1:length(CL.ROIgroups)       
-        CL.ROIgroups(sc).Restimate = getRestimates(CL,CL.ROIgroups(sc),struct('mintubelen',5));
-        RestimatesWTLaura(end+1) = CL.ROIgroups(sc).Restimate;
-    end    
-end
-
-load('../results/400ngRTN4OE_FITC_Calnexin_membrane.mat')
-erodeum=0.2; dilum =0.2;
-RestimatesRTN4OE = [];
-for cc = 1:length(allcells)    
-    CL = allcells(cc);
-    CL.reprocessROIs(erodeum,dilum);
-    for sc = 1:length(CL.ROIgroups)       
-        CL.ROIgroups(sc).Restimate = getRestimates(CL,CL.ROIgroups(sc),struct('mintubelen',5));
-        RestimatesRTN4OE(end+1) = CL.ROIgroups(sc).Restimate;
-    end    
-end
-
-
 %% Compare multiple datasets
 load('200807_COS7_RTN4_KO_2G3_SNAP_KDEL_505_Sec61_Halo_TMR.mat')
 erodeum=0.2; dilum =0.2;
@@ -191,7 +175,6 @@ for cc = 1:length(allcells)
 end
 RestimatesRTN4 = [RestimatesRTN4 Restimates1];
 
-%%
 load('../results/210106_COS7_RTN4_KO_Sec61_Halo_OG_ER_mCherry.mat')
 Restimates2 = [];
 for cc = 1:length(allcells)    
@@ -204,7 +187,7 @@ for cc = 1:length(allcells)
 end
 RestimatesRTN4 = [RestimatesRTN4 Restimates2];
 
-%%
+
 load('../results/210106_COS7_RTN4_KO_Sec61_Halo_OG_ER_mCherry_Lightning.mat');
 Restimates3 = [];
 for cc = 1:length(allcells)    
@@ -215,7 +198,6 @@ for cc = 1:length(allcells)
         Restimates3(end+1) = CL.ROIgroups(sc).Restimate;
     end        
 end
-RestimatesRTN4sr = Restimates3;
 RestimatesRTN4 = [RestimatesRTN4 Restimates3];
 
 %%
@@ -251,7 +233,6 @@ for cc = 1:length(allcells)
 end
 RestimatesWT = [RestimatesWT Restimates2];
 
-%
 load('../results/210106_COS7_WT_Sec61_Halo_OG_ER_mCherry_Lightning.mat')
 Restimates3 = [];
 for cc = 1:length(allcells)    
@@ -264,45 +245,12 @@ for cc = 1:length(allcells)
         Restimates3(end+1) = CL.ROIgroups(sc).Restimate;
     end            
 end
-RestimatesWTsr = Restimates3;
 RestimatesWT = [RestimatesWT Restimates3];
 
 %%
-[nanmedian(RestimatesWT) nanmedian(RestimatesRTN4OE)]
-
-%% Compare all results with statistical tests
-
-[hWT,pWT] = kstest2(RestimatesWT, RestimatesWTLaura)
-[hRTN4OE, pRTN4OE] = kstest2(RestimatesRTN4OE, RestimatesWTLaura)
-[hRTN4KO, pRTN4KO] = kstest2(RestimatesRTN4, RestimatesWT)
-[hSR, pSR] = kstest2(RestimatesWTsr, RestimatesWT(1:end-length(RestimatesWTsr)))
-
-%%
-display({'Edward WT', 'Laura WT', 'Edward RTN4KO', 'Laura RTN4OE'})
-
-[nanmean(RestimatesWT) nanmean(RestimatesWTLaura) nanmean(RestimatesRTN4) nanmean(RestimatesRTN4OE)]
-
-ind = find(~isnan(RestimatesWT)); nWT = length(ind);
-steWT = std(RestimatesWT(ind))/sqrt(nWT);
-ind = find(~isnan(RestimatesWTLaura)); nWTLaura = length(ind);
-steWTLaura = std(RestimatesWTLaura(ind))/sqrt(length(ind));
-ind = find(~isnan(RestimatesRTN4)); nRTN4 = length(ind);
-steRTN4 = std(RestimatesRTN4(ind))/sqrt(length(ind));
-ind = find(~isnan(RestimatesRTN4OE)); nRTN4OE = length(ind);
-steRTN4OE = std(RestimatesRTN4OE(ind))/sqrt(length(ind));
-
-[steWT steWTLaura steRTN4 steRTN4OE]
-[nWT nWTLaura nRTN4 nRTN4OE]
+[nanmedian(RestimatesWT) nanmedian(RestimatesRTN4)]
 
 
-disp('super resolution WT and RTN4KO')
-[nanmean(RestimatesWTsr) nanmean(RestimatesRTN4sr)]
-ind = find(~isnan(RestimatesWTsr)); nWTsr = length(ind);
-steWTsr = std(RestimatesWTsr(ind))/sqrt(length(ind));
-ind = find(~isnan(RestimatesRTN4sr)); nRTN4sr = length(ind);
-steRTN4sr = std(RestimatesRTN4sr(ind))/sqrt(length(ind));
-[steWTsr steRTN4sr]
-[nWTsr nRTN4sr]
 % --------------------------
 %% get standard error from bootstrapping
 ntrial = 500;
@@ -310,12 +258,12 @@ for bc = 1:ntrial
     valsWT = datasample(RestimatesWT,length(RestimatesWT),'Replace',true);
     valsRTN4 = datasample(RestimatesRTN4,length(RestimatesRTN4),'Replace',true);
     
-    bootstrapWT(bc) = nanmean(valsWT);
-    bootstrapRTN4(bc) = nanmean(valsRTN4);
+    bootstrapWT(bc) = nanmedian(valsWT);
+    bootstrapRTN4(bc) = nanmedian(valsRTN4);
 end
 
 disp('medians')
-[median(RestimatesWT) nanmedian(RestimatesRTN4)]
+[median(RestimatesWT) median(RestimatesRTN4)]
 disp('means of bootstrap')
 [mean(bootstrapWT) mean(bootstrapRTN4)]
 disp('std of bootstrap')
