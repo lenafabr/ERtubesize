@@ -11,7 +11,7 @@ resoffset = 0.2;
 cellct = 0;
 
 %%
-for fc = 3:length(files)
+for fc = 6:length(files)
     fname = files(fc).name
     [filepath,name,ext] = fileparts(fname);
     
