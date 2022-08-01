@@ -1,5 +1,6 @@
 %dirname = ['~/UCSD/data/Avezov/Tasuko/220421_COS7_Halo-Sec61b-TMR_for tubule width_live and fixed/'];
-dirname = ['/data/proj/ERtransport/Tasuko20220421_tubewidth/220421_COS7_Halo-Sec61b-TMR_for tubule width_live and fixed/'];
+%dirname = ['/data/proj/ERtransport/Tasuko20220421_tubewidth/220421_COS7_Halo-Sec61b-TMR_for tubule width_live and fixed/'];
+dirname = '../example/';
 %
 fglob = ['220421_COS7_Halo_Sec61b_TMR_fortubulewidth_live*.tif'];
 
@@ -11,7 +12,7 @@ resoffset = 0.2;
 cellct = 0;
 
 %%
-for fc = 6:length(files)
+for fc = 1:length(files)
     fname = files(fc).name
     [filepath,name,ext] = fileparts(fname);
     
@@ -78,7 +79,7 @@ for fc = 6:length(files)
         end
         
         %% show masks
-        CL.showROImasks(0)
+        CL.showROImasks()
         
                 
         %% calculate radius estimate for this sheet and tubule group
@@ -100,7 +101,7 @@ end
 
 %%
 %save(['../results/220421_COS7_Halo_Sec61b_TMR_fortubulewidth_live.mat'])
-save(['../results/example.mat'])
+save(['../example/example.mat'])
 
 %% get averages
 Restimates = [];
