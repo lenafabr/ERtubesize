@@ -270,12 +270,13 @@ classdef CellObjTubeSheet < handle
             opt.showlum = false;
             opt.label = false;
 
-            if (nargin<2)
+            if (nargin>1)
                 opt = copyStruct(options,opt);
             end            
             
             %% show all sheet and tube masks and paths
             totmask = zeros(CL.ImgSize);
+            cent = [];
             for sc= opt.whichroi
                 sheetROI = CL.ROIgroups(sc).sheetROI;
                 tubeROIs = CL.ROIgroups(sc).tubeROIs;
@@ -284,13 +285,20 @@ classdef CellObjTubeSheet < handle
                 for tc = 1:length(tubeROIs)
                     totmask = totmask + tubeROIs(tc).dilmask;
                 end
+                
+                tmp = regionprops(CL.ROIgroups(sc).sheetROI.erodemask)
+                cent(sc,:) = tmp.Centroid;
             end
             if (opt.showlum)
                 imshowpair(CL.imglum,totmask)
             else
-                imshowpair(CL.imgmem,totmask)
+                imshowpair(CL.imgmem,totmask)                    
             end
             hold all
+                        
+            for sc = opt.whichroi
+                text(cent(sc,1),cent(sc,2),sprintf('%d',sc),'Color','y')
+            end
             
             if (opt.label)
                 for sc = opt.whichroi
