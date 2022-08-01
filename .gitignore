@@ -17,8 +17,6 @@
 *.gz
 *.zip
 *.bz2
-*.tiff
-*.tif
 *.jpg
 *.jpeg
 *.avi
