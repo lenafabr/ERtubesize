@@ -24,6 +24,5 @@
 *.avi
 *.png
 *.eps
-Data/
-photoActivationAnalysis/
-photoActivationAnalysis/*
+results/
+data/

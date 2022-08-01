@@ -265,12 +265,12 @@ classdef CellObjTubeSheet < handle
         end
         
         function showROImasks(CL,options)
-            
+            opt = struct();
             opt.whichroi = 1:length(CL.ROIgroups);
             opt.showlum = false;
             opt.label = false;
 
-            if (exist('options','var'))
+            if (nargin<2)
                 opt = copyStruct(options,opt);
             end            
             
