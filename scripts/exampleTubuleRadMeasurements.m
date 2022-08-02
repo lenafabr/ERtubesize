@@ -9,10 +9,12 @@ files = dir([dirname fglob])
 
 %% offset for dilation and erosion, to deal with resolution issues
 resoffset = 0.2;
+
+% count how many cells are already done
 cellct = 0;
 
-%%
-for fc = 1:length(files)
+%% Run the data processing on all the files
+for fc = 2:length(files)
     fname = files(fc).name
     [filepath,name,ext] = fileparts(fname);
     
@@ -22,7 +24,8 @@ for fc = 1:length(files)
     CL.imgmem = double(CL.imgmem)/max(double(CL.imgmem(:)));
     % brighten the image by maxing out top percentage of pixels
     % to not adjust at all, put [0,1],[0,1] for the arguments
-    imgmemadj = imadjust(CL.imgmem,[0,0.75],[0,1]);
+    imgmemadj = imadjust(CL.imgmem,[0,0.5],[0,1]);
+    CL.imgmem = imgmemadj;
     
     % show membrane and luminal images
     figure(1)    
@@ -41,7 +44,7 @@ for fc = 1:length(files)
     figure(1)%; subplot(1,2,1)
     CL.getBackground(1);
             
-    %%
+    %% Pick out new sheet regions
     sheetcount = length(CL.ROIgroups)
     while 1        % sheets
         sheetcount = sheetcount + 1;
